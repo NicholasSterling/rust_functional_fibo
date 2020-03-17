@@ -1,0 +1,6 @@
+[package]
+name = "rust_functional_fibo"
+version = "0.1.0"
+authors = ["zicog <zicog@example.com>"]
+edition = "2018"
+[dependencies]
