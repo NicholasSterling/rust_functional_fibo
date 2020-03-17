@@ -4,7 +4,7 @@ extern crate test;
 
 const N: u64 = 4000000000000000000;
 
-fn thor314(n: u64) -> u64 {
+pub fn thor314(n: u64) -> u64 {
     let sum: u64 = (1..)
         .scan((1, 1), |state, _| {
             let temp = state.0;
@@ -18,7 +18,7 @@ fn thor314(n: u64) -> u64 {
     sum
 }
 
-fn jethrogb(n: u64) -> u64 {
+pub fn jethrogb(n: u64) -> u64 {
     let sum: u64 = std::iter::repeat_with({
         let mut state = (1, 1);
         move || {
@@ -89,7 +89,7 @@ pub fn exphp(n: u64) -> u64 {
     sum
 }
 
-fn fibonacci() -> impl Iterator<Item = u64> {
+pub fn fibonacci() -> impl Iterator<Item = u64> {
     let mut state = (0, 1);
     std::iter::repeat_with(move || {
         state = (state.1, state.0 + state.1);
@@ -97,7 +97,7 @@ fn fibonacci() -> impl Iterator<Item = u64> {
     })
 }
 
-fn burjui(n: u64) -> u64 {
+pub fn burjui(n: u64) -> u64 {
     let sum: u64 = fibonacci()
         .take_while(|&x| x < n)
         .filter(|x| x % 2 == 0)
@@ -105,7 +105,9 @@ fn burjui(n: u64) -> u64 {
     sum
 }
 
-fn amigonico(n: u64) -> u64 {
+////////////
+
+pub fn amigonico(n: u64) -> u64 {
     // Returns an Iterator for the Fibonacci sequence: 1 1 2 3 5 8 ...
     fn fib() -> impl Iterator<Item = u64> {
         iterize((1u64,1u64), |p| (p.1, p.0 + p.1))
@@ -122,7 +124,7 @@ fn amigonico(n: u64) -> u64 {
 // the next state from an existing state, we return an Iterator for the Rs.
 // So in (R,S), R is the part that gets (R)eturned by the Iterator,
 // and S is any additional (S)tate used internally.
-fn iterize<R: Copy, S: Copy>(s0: (R,S), f: impl Fn((R,S)) -> (R,S)) -> impl Iterator<Item = R> {
+pub fn iterize<R: Copy, S: Copy>(s0: (R,S), f: impl Fn((R,S)) -> (R,S)) -> impl Iterator<Item = R> {
     let mut state = s0;
     std::iter::repeat_with(
         move || { state.swap(f(state)).0 }
@@ -139,7 +141,18 @@ impl<T> Swap for T {
     }
 }
 
-fn main() {
+////////////
+
+pub fn itertools(n: u64) -> u64 {
+    let sum: u64 = itertools::iterate((1u64,1u64), |&p| (p.1, p.0 + p.1))
+        .map(|p| p.0)
+        .take_while(|&x| x < n)
+        .filter(|x| x % 2 == 0)
+        .sum();
+    sum
+}
+
+pub fn main() {
     let mut sum;
     sum = thor314(N);
     println!("thor314:  {}", sum);
@@ -157,6 +170,8 @@ fn main() {
     println!("burjui:   {}", sum);
     sum = amigonico(N);
     println!("amigonico:{}", sum);
+    sum = itertools(N);
+    println!("itertools:{}", sum);
 }
 
 #[cfg(test)]
@@ -253,6 +268,13 @@ mod tests {
         b.iter(|| {
             let n = test::black_box(N);
             amigonico(n)
+        });
+    }
+    #[bench]
+    fn itertools_b(b: &mut Bencher) {
+        b.iter(|| {
+            let n = test::black_box(N);
+            itertools(n)
         });
     }
 }
