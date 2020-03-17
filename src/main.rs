@@ -105,6 +105,40 @@ fn burjui(n: u64) -> u64 {
     sum
 }
 
+fn amigonico(n: u64) -> u64 {
+    // Returns an Iterator for the Fibonacci sequence: 1 1 2 3 5 8 ...
+    fn fib() -> impl Iterator<Item = u64> {
+        iterize((1u64,1u64), |p| (p.1, p.0 + p.1))
+    }
+    let sum: u64 = fib()
+        .take_while(|&x| x < n)
+        .filter(|x| x % 2 == 0)
+        .sum();
+    sum
+}
+
+// Produces an Iterator by induction.
+// Given an initial state of type (R,S) and a function that produces
+// the next state from an existing state, we return an Iterator for the Rs.
+// So in (R,S), R is the part that gets (R)eturned by the Iterator,
+// and S is any additional (S)tate used internally.
+fn iterize<R: Copy, S: Copy>(s0: (R,S), f: impl Fn((R,S)) -> (R,S)) -> impl Iterator<Item = R> {
+    let mut state = s0;
+    std::iter::repeat_with(
+        move || { state.swap(f(state)).0 }
+    )
+}
+
+// a.swap(b) sets a to b and returns the old value of a.
+pub trait Swap: Sized {
+    fn swap(&mut self, value: Self) -> Self;
+}
+impl<T> Swap for T {
+    fn swap(&mut self, new: Self) -> Self {
+        std::mem::replace(self, new)
+    }
+}
+
 fn main() {
     let mut sum;
     sum = thor314(N);
@@ -121,6 +155,8 @@ fn main() {
     println!("exphp:    {}", sum);
     sum = burjui(N);
     println!("burjui:   {}", sum);
+    sum = amigonico(N);
+    println!("amigonico:{}", sum);
 }
 
 #[cfg(test)]
@@ -158,6 +194,10 @@ mod tests {
     fn burjui_t() {
         assert_eq!(EXPECTED, burjui(N));
     }
+    #[test]
+    fn amigonico_t() {
+        assert_eq!(EXPECTED, amigonico(N));
+    }
 
     #[bench]
     fn thor314_b(b: &mut Bencher) {
@@ -194,7 +234,6 @@ mod tests {
             zicog2(n)
         });
     }
-
     #[bench]
     fn exphp_b(b: &mut Bencher) {
         b.iter(|| {
@@ -207,6 +246,13 @@ mod tests {
         b.iter(|| {
             let n = test::black_box(N);
             burjui(n)
+        });
+    }
+    #[bench]
+    fn amigonico_b(b: &mut Bencher) {
+        b.iter(|| {
+            let n = test::black_box(N);
+            amigonico(n)
         });
     }
 }
