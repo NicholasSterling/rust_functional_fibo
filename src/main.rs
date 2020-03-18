@@ -5,8 +5,8 @@ extern crate test;
 const N: u64 = 4000000000000000000;
 
 pub fn thor314(n: u64) -> u64 {
-    let sum: u64 = (1..)
-        .scan((1, 1), |state, _| {
+    let sum: u64 = (1u64..)
+        .scan((1u64, 1u64), |state, _| {
             let temp = state.0;
             state.0 = state.1 + state.0;
             state.1 = temp;
@@ -20,7 +20,7 @@ pub fn thor314(n: u64) -> u64 {
 
 pub fn jethrogb(n: u64) -> u64 {
     let sum: u64 = std::iter::repeat_with({
-        let mut state = (1, 1);
+        let mut state = (1u64, 1u64);
         move || {
             let next = (state.1, state.0 + state.1);
             std::mem::replace(&mut state, next).0
@@ -34,7 +34,7 @@ pub fn jethrogb(n: u64) -> u64 {
 
 pub fn marcianx(n: u64) -> u64 {
     let sum: u64 = std::iter::repeat_with({
-        let mut state = (1, 1);
+        let mut state = (1u64, 1u64);
         move || {
             state = (state.1, state.0 + state.1);
             state.0
@@ -47,7 +47,7 @@ pub fn marcianx(n: u64) -> u64 {
 }
 
 pub fn zicog1(n: u64) -> u64 {
-    let mut state = (1, 1);
+    let mut state = (1u64, 1u64);
     let sum: u64 = std::iter::repeat_with(|| {
         state = (state.1, state.0 + state.1);
         state.0
@@ -60,7 +60,7 @@ pub fn zicog1(n: u64) -> u64 {
 
 pub fn zicog2(n: u64) -> u64 {
     let mut sum: u64 = 0;
-    let mut state = (1, 1);
+    let mut state = (1u64, 1u64);
     loop {
         state = (state.1, state.0 + state.1);
         if state.0 >= n {
@@ -75,7 +75,7 @@ pub fn zicog2(n: u64) -> u64 {
 pub fn exphp(n: u64) -> u64 {
     let sum = {
         let mut sum: u64 = 0;
-        let mut state = (1, 1);
+        let mut state = (1u64, 1u64);
         loop {
             state = (state.1, state.0 + state.1);
             if state.0 >= n {
@@ -90,7 +90,7 @@ pub fn exphp(n: u64) -> u64 {
 }
 
 pub fn fibonacci() -> impl Iterator<Item = u64> {
-    let mut state = (0, 1);
+    let mut state = (0u64, 1u64);
     std::iter::repeat_with(move || {
         state = (state.1, state.0 + state.1);
         state.0
