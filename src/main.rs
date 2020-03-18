@@ -2,121 +2,88 @@
 
 extern crate test;
 
-const N: u64 = 4000000000000000000;
+const N: usize = 90;
+const EXPECTED: u64 = 2880067194370816120;
 
-pub fn thor314(n: u64) -> u64 {
-    let sum: u64 = (1..)
-        .scan((1, 1), |state, _| {
+pub fn thor314(n: usize) -> u64 {
+    let last: u64 = (1..)
+        .scan((0u64, 1u64), |state, _| {
             let temp = state.0;
             state.0 = state.1 + state.0;
             state.1 = temp;
             Some(state.0)
         })
-        .take_while(|&x| x < n)
-        .filter(|x| x % 2 == 0)
-        .sum();
-    sum
+        .take(n)
+        .last()
+        .unwrap();
+    last
 }
 
-pub fn jethrogb(n: u64) -> u64 {
-    let sum: u64 = std::iter::repeat_with({
-        let mut state = (1, 1);
+pub fn jethrogb(n: usize) -> u64 {
+    let last: u64 = std::iter::repeat_with({
+        let mut state = (1u64, 1u64);
         move || {
             let next = (state.1, state.0 + state.1);
             std::mem::replace(&mut state, next).0
         }
-    })
-    .take_while(|&x| x < n)
-    .filter(|x| x % 2 == 0)
-    .sum();
-    sum
+    })  .take(n)
+        .last()
+        .unwrap();
+    last
 }
 
-pub fn marcianx(n: u64) -> u64 {
-    let sum: u64 = std::iter::repeat_with({
-        let mut state = (1, 1);
+pub fn marcianx(n: usize) -> u64 {
+    let last: u64 = std::iter::repeat_with({
+        let mut state = (0u64, 1u64);
         move || {
             state = (state.1, state.0 + state.1);
             state.0
         }
-    })
-    .take_while(|&x| x < n)
-    .filter(|x| x % 2 == 0)
-    .sum();
-    sum
+    })  .take(n)
+        .last()
+        .unwrap();
+    last
 }
 
-pub fn zicog1(n: u64) -> u64 {
-    let mut state = (1, 1);
-    let sum: u64 = std::iter::repeat_with(|| {
+pub fn zicog1(n: usize) -> u64 {
+    let mut state = (0u64, 1u64);
+    let last: u64 = std::iter::repeat_with(|| {
         state = (state.1, state.0 + state.1);
         state.0
-    })
-    .take_while(|&x| x < n)
-    .filter(|x| x % 2 == 0)
-    .sum();
-    sum
-}
-
-pub fn zicog2(n: u64) -> u64 {
-    let mut sum: u64 = 0;
-    let mut state = (1, 1);
-    loop {
-        state = (state.1, state.0 + state.1);
-        if state.0 >= n {
-            break sum;
-        }
-        if state.0 % 2 == 0 {
-            sum += state.0
-        }
-    }
-}
-
-pub fn exphp(n: u64) -> u64 {
-    let sum = {
-        let mut sum: u64 = 0;
-        let mut state = (1, 1);
-        loop {
-            state = (state.1, state.0 + state.1);
-            if state.0 >= n {
-                break sum;
-            }
-            if state.0 % 2 == 0 {
-                sum += state.0
-            }
-        }
-    };
-    sum
+    })  .take(n)
+        .last()
+        .unwrap();
+    last
 }
 
 pub fn fibonacci() -> impl Iterator<Item = u64> {
-    let mut state = (0, 1);
+    let mut state = (0u64, 1u64);
     std::iter::repeat_with(move || {
         state = (state.1, state.0 + state.1);
         state.0
     })
 }
 
-pub fn burjui(n: u64) -> u64 {
-    let sum: u64 = fibonacci()
-        .take_while(|&x| x < n)
-        .filter(|x| x % 2 == 0)
-        .sum();
-    sum
+pub fn burjui(n: usize) -> u64 {
+    let last: u64 = fibonacci()
+        .take(n)
+        .last()
+        .unwrap();
+    last
 }
 
 ////////////
 
-pub fn amigonico(n: u64) -> u64 {
+pub fn amigonico(n: usize) -> u64 {
     // Returns an Iterator for the Fibonacci sequence: 1 1 2 3 5 8 ...
     fn fib() -> impl Iterator<Item = u64> {
         iterize((1u64,1u64), |p| (p.1, p.0 + p.1))
     }
-    let sum: u64 = fib()
-        .take_while(|&x| x < n)
-        .filter(|x| x % 2 == 0)
-        .sum();
-    sum
+    let last: u64 = fib()
+        .take(n)
+        .last()
+        .unwrap();
+    last
 }
 
 // Produces an Iterator by induction.
@@ -143,43 +110,37 @@ impl<T> Swap for T {
 
 ////////////
 
-pub fn itertools(n: u64) -> u64 {
-    let sum: u64 = itertools::iterate((1u64,1u64), |&p| (p.1, p.0 + p.1))
+pub fn itertools(n: usize) -> u64 {
+    let last: u64 = itertools::iterate((1u64,1u64), |&p| (p.1, p.0 + p.1))
         .map(|p| p.0)
-        .take_while(|&x| x < n)
-        .filter(|x| x % 2 == 0)
-        .sum();
-    sum
+        .take(n)
+        .last()
+        .unwrap();
+    last
 }
 
 pub fn main() {
-    let mut sum;
-    sum = thor314(N);
-    println!("thor314:  {}", sum);
-    sum = jethrogb(N);
-    println!("jethrogb: {}", sum);
-    sum = marcianx(N);
-    println!("marcianx: {}", sum);
-    sum = zicog1(N);
-    println!("zicog1:   {}", sum);
-    sum = zicog2(N);
-    println!("zicog2:   {}", sum);
-    sum = exphp(N);
-    println!("exphp:    {}", sum);
-    sum = burjui(N);
-    println!("burjui:   {}", sum);
-    sum = amigonico(N);
-    println!("amigonico:{}", sum);
-    sum = itertools(N);
-    println!("itertools:{}", sum);
+    let mut last;
+    last = thor314(N);
+    println!("thor314:  {}", last);
+    last = jethrogb(N);
+    println!("jethrogb: {}", last);
+    last = marcianx(N);
+    println!("marcianx: {}", last);
+    last = zicog1(N);
+    println!("zicog1:   {}", last);
+    last = burjui(N);
+    println!("burjui:   {}", last);
+    last = amigonico(N);
+    println!("amigonico:{}", last);
+    last = itertools(N);
+    println!("itertools:{}", last);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use test::Bencher;
-
-    const EXPECTED: u64 = 3770056902373173214;
 
     #[test]
     fn thor314_t() {
@@ -196,14 +157,6 @@ mod tests {
     #[test]
     fn zicog1_t() {
         assert_eq!(EXPECTED, zicog1(N));
-    }
-    #[test]
-    fn zicog2_t() {
-        assert_eq!(EXPECTED, zicog2(N));
-    }
-    #[test]
-    fn exphp_t() {
-        assert_eq!(EXPECTED, exphp(N));
     }
     #[test]
     fn burjui_t() {
@@ -240,20 +193,6 @@ mod tests {
         b.iter(|| {
             let n = test::black_box(N);
             zicog1(n)
-        });
-    }
-    #[bench]
-    fn zicog2_b(b: &mut Bencher) {
-        b.iter(|| {
-            let n = test::black_box(N);
-            zicog2(n)
-        });
-    }
-    #[bench]
-    fn exphp_b(b: &mut Bencher) {
-        b.iter(|| {
-            let n = test::black_box(N);
-            exphp(n)
         });
     }
     #[bench]
