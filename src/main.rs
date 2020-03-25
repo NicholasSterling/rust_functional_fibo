@@ -110,7 +110,7 @@ pub fn burjui(n: u64) -> u64 {
 pub fn amigonico(n: u64) -> u64 {
     // Returns an Iterator for the Fibonacci sequence: 1 1 2 3 5 8 ...
     fn fib() -> impl Iterator<Item = u64> {
-        iterize((1u64,1u64), |p| (p.1, p.0 + p.1))
+        iterize((1u64,1u64), |(a,b)| (b, a+b))
     }
     let sum: u64 = fib()
         .take_while(|&x| x < n)
@@ -144,7 +144,7 @@ impl<T> Swap for T {
 ////////////
 
 pub fn itertools(n: u64) -> u64 {
-    let sum: u64 = itertools::iterate((1u64,1u64), |&p| (p.1, p.0 + p.1))
+    let sum: u64 = itertools::iterate((1u64,1u64), |&(a,b)| (b, a+b))
         .map(|p| p.0)
         .take_while(|&x| x < n)
         .filter(|x| x % 2 == 0)
