@@ -1,89 +1,91 @@
 #![feature(test)]
+// #![feature(type_alias_impl_trait)]
+
+use std::iter::repeat_with;
 
 extern crate test;
 
-const N: usize = 90;
-const EXPECTED: u64 = 2880067194370816120;
+type Int = u64;
 
-pub fn thor314(n: usize) -> u64 {
-    let last: u64 = (1..)
-        .scan((0u64, 1u64), |state, _| {
-            let temp = state.0;
-            state.0 = state.1 + state.0;
-            state.1 = temp;
-            Some(state.0)
-        })
-        .take(n)
-        .last()
-        .unwrap();
-    last
+fn a_few(iter: impl Iterator<Item=Int>) -> Vec<Int> {
+    iter.take(7).collect()
 }
 
-pub fn jethrogb(n: usize) -> u64 {
-    let last: u64 = std::iter::repeat_with({
-        let mut state = (1u64, 1u64);
-        move || {
-            let next = (state.1, state.0 + state.1);
-            std::mem::replace(&mut state, next).0
-        }
-    })  .take(n)
-        .last()
-        .unwrap();
-    last
+pub fn main() {
+
+    dbg!(a_few(  tuple_n_ns()));
+    dbg!(a_few( byhand_n_ns()));
+    dbg!(a_few(iterize_n_ns()));
+    dbg!(a_few(iterate_n_ns()));
+
+    dbg!(a_few(  tuple_fib()));
+    dbg!(a_few( byhand_fib()));
+    dbg!(a_few(iterize_fib()));
+    dbg!(a_few(iterate_fib()));
 }
 
-pub fn marcianx(n: usize) -> u64 {
-    let last: u64 = std::iter::repeat_with({
-        let mut state = (0u64, 1u64);
-        move || {
-            state = (state.1, state.0 + state.1);
-            state.0
-        }
-    })  .take(n)
-        .last()
-        .unwrap();
-    last
-}
-
-pub fn zicog1(n: usize) -> u64 {
+pub fn tuple_fib() -> impl Iterator<Item=Int> {
     let mut state = (0u64, 1u64);
-    let last: u64 = std::iter::repeat_with(|| {
-        state = (state.1, state.0 + state.1);
-        state.0
-    })  .take(n)
-        .last()
-        .unwrap();
-    last
-}
-
-pub fn fibonacci() -> impl Iterator<Item = u64> {
-    let mut state = (0u64, 1u64);
-    std::iter::repeat_with(move || {
+    repeat_with(move || {
         state = (state.1, state.0 + state.1);
         state.0
     })
 }
 
-pub fn burjui(n: usize) -> u64 {
-    let last: u64 = fibonacci()
-        .take(n)
-        .last()
-        .unwrap();
-    last
+pub fn tuple_n_ns() -> impl Iterator<Item=Int> {
+    let mut state = (1u64, 1u64);
+    repeat_with(move || {
+        if state.1 == 0 {
+            let n = state.0;
+            state = (n+1, n);
+        } else {
+            state = (state.0, state.1-1);
+        }
+        state.0
+    })
 }
 
 ////////////
 
-pub fn amigonico(n: usize) -> u64 {
-    // Returns an Iterator for the Fibonacci sequence: 1 1 2 3 5 8 ...
-    fn fib() -> impl Iterator<Item = u64> {
-        iterize((1u64,1u64), |p| (p.1, p.0 + p.1))
-    }
-    let last: u64 = fib()
-        .take(n)
-        .last()
-        .unwrap();
-    last
+pub fn byhand_fib() -> impl Iterator<Item=Int> {
+    let mut a = 1u64;
+    let mut b = 1u64;
+    repeat_with(move || {
+        let tmp = a;
+        a = b;
+        b += tmp;
+        tmp
+    })
+}
+
+pub fn byhand_n_ns() -> impl Iterator<Item=Int> {
+    let mut n = 1u64;
+    let mut r = 1u64;
+    repeat_with(move || {
+        if r == 0 {
+            r = n;
+            n += 1;
+        } else {
+            r -= 1;
+        }
+        n
+    })
+}
+
+////////////
+
+pub fn iterize_fib() -> impl Iterator<Item=Int> {
+    iterize((1u64,1u64), |(a,b)| (b, a+b))
+}
+
+pub fn iterize_n_ns() -> impl Iterator<Item=Int> {
+    iterize((1u64,0u64), |(n,r)|
+        if r == 0 {
+            (n+1, n)
+        } else {
+            (n, r-1)
+        }
+    )
 }
 
 // Produces an Iterator by induction.
@@ -93,7 +95,7 @@ pub fn amigonico(n: usize) -> u64 {
 // and S is any additional (S)tate used internally.
 pub fn iterize<R: Copy, S: Copy>(s0: (R,S), f: impl Fn((R,S)) -> (R,S)) -> impl Iterator<Item = R> {
     let mut state = s0;
-    std::iter::repeat_with(
+    repeat_with(
         move || { state.swap(f(state)).0 }
     )
 }
@@ -110,110 +112,118 @@ impl<T> Swap for T {
 
 ////////////
 
-pub fn itertools(n: usize) -> u64 {
-    let last: u64 = itertools::iterate((1u64,1u64), |&p| (p.1, p.0 + p.1))
+pub fn iterate_fib() -> impl Iterator<Item=Int> {
+    itertools::iterate((1u64,1u64), |&(a,b)| (b, a+b))
         .map(|p| p.0)
-        .take(n)
-        .last()
-        .unwrap();
-    last
 }
 
-pub fn main() {
-    let mut last;
-    last = thor314(N);
-    println!("thor314:  {}", last);
-    last = jethrogb(N);
-    println!("jethrogb: {}", last);
-    last = marcianx(N);
-    println!("marcianx: {}", last);
-    last = zicog1(N);
-    println!("zicog1:   {}", last);
-    last = burjui(N);
-    println!("burjui:   {}", last);
-    last = amigonico(N);
-    println!("amigonico:{}", last);
-    last = itertools(N);
-    println!("itertools:{}", last);
+pub fn iterate_n_ns() -> impl Iterator<Item=Int> {
+    itertools::iterate((1u64,0u64), |&(n,r)|
+        if r == 0 {
+            (n+1, n)
+        } else {
+            (n, r-1)
+        }
+    ).map(|p| p.0)
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
     use test::Bencher;
 
-    #[test]
-    fn thor314_t() {
-        assert_eq!(EXPECTED, thor314(N));
+    const FIB: Int = 12200160415121876737;
+    const N_NS: Int = 29820;
+
+    pub fn fib_sum(iter: impl Iterator<Item=Int>) -> Int {
+        iter.take(91).sum()
     }
-    #[test]
-    fn jethrogb_t() {
-        assert_eq!(EXPECTED, jethrogb(N));
+
+    pub fn n_ns_sum(iter: impl Iterator<Item=Int>) -> Int {
+        iter.take(1000).sum()
     }
-    #[test]
-    fn marcianx_t() {
-        assert_eq!(EXPECTED, marcianx(N));
+
+    /////
+
+   #[test]
+    fn tuple_fib_t() {
+        assert_eq!(FIB, fib_sum(tuple_fib()));
     }
-    #[test]
-    fn zicog1_t() {
-        assert_eq!(EXPECTED, zicog1(N));
+
+   #[test]
+    fn tuple_n_ns_t() {
+        assert_eq!(N_NS, n_ns_sum(tuple_n_ns()));
     }
-    #[test]
-    fn burjui_t() {
-        assert_eq!(EXPECTED, burjui(N));
+
+   #[test]
+    fn byhand_fib_t() {
+        assert_eq!(FIB, fib_sum(byhand_fib()));
     }
+
+   #[test]
+    fn byhand_n_ns_t() {
+        assert_eq!(N_NS, n_ns_sum(byhand_n_ns()));
+    }
+
     #[test]
-    fn amigonico_t() {
-        assert_eq!(EXPECTED, amigonico(N));
+    fn iterize_fib_t() {
+        assert_eq!(FIB, fib_sum(iterize_fib()));
+    }
+
+    #[test]
+    fn iterize_n_ns_t() {
+        assert_eq!(N_NS, n_ns_sum(iterize_n_ns()));
+    }
+
+    #[test]
+    fn iterate_fib_t() {
+        assert_eq!(FIB, fib_sum(iterate_fib()));
+    }
+
+    #[test]
+    fn iterate_n_ns_t() {
+        assert_eq!(N_NS, n_ns_sum(iterate_n_ns()));
+    }
+
+    /////
+
+    #[bench]
+    fn tuple_fib_b(b: &mut Bencher) {
+        b.iter(|| { fib_sum(tuple_fib()) });
     }
 
     #[bench]
-    fn thor314_b(b: &mut Bencher) {
-        b.iter(|| {
-            let n = test::black_box(N);
-            thor314(n)
-        });
+    fn tuple_n_ns_b(b: &mut Bencher) {
+        b.iter(|| { n_ns_sum(tuple_n_ns()) });
+    }
+
+    #[bench]
+    fn byhand_fib_b(b: &mut Bencher) {
+        b.iter(|| { fib_sum(byhand_fib()) });
+    }
+
+    #[bench]
+    fn byhand_n_ns_b(b: &mut Bencher) {
+        b.iter(|| { n_ns_sum(byhand_n_ns()) });
+    }
+
+    #[bench]
+    fn iterize_fib_b(b: &mut Bencher) {
+        b.iter(|| { fib_sum(iterize_fib()) });
+    }
+
+    #[bench]
+    fn iterize_n_ns_b(b: &mut Bencher) {
+        b.iter(|| { n_ns_sum(iterize_n_ns()) });
     }
     #[bench]
-    fn jethrogb_b(b: &mut Bencher) {
-        b.iter(|| {
-            let n = test::black_box(N);
-            jethrogb(n)
-        });
+    fn iterate_fib_b(b: &mut Bencher) {
+        b.iter(|| { fib_sum(iterate_fib()) });
     }
+
     #[bench]
-    fn marcianx_b(b: &mut Bencher) {
-        b.iter(|| {
-            let n = test::black_box(N);
-            marcianx(n)
-        });
-    }
-    #[bench]
-    fn zicog1_b(b: &mut Bencher) {
-        b.iter(|| {
-            let n = test::black_box(N);
-            zicog1(n)
-        });
-    }
-    #[bench]
-    fn burjui_b(b: &mut Bencher) {
-        b.iter(|| {
-            let n = test::black_box(N);
-            burjui(n)
-        });
-    }
-    #[bench]
-    fn amigonico_b(b: &mut Bencher) {
-        b.iter(|| {
-            let n = test::black_box(N);
-            amigonico(n)
-        });
-    }
-    #[bench]
-    fn itertools_b(b: &mut Bencher) {
-        b.iter(|| {
-            let n = test::black_box(N);
-            itertools(n)
-        });
+    fn iterate_n_ns_b(b: &mut Bencher) {
+        b.iter(|| { n_ns_sum(iterate_n_ns()) });
     }
 }
