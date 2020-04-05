@@ -74,6 +74,20 @@ pub fn byhand_n_ns() -> impl Iterator<Item=Int> {
 
 ////////////
 
+pub fn old_iterize_fib() -> impl Iterator<Item=Int> {
+    old_iterize((1u64,1u64), |(a,b)| (b, a+b))
+}
+
+pub fn old_iterize_n_ns() -> impl Iterator<Item=Int> {
+    old_iterize((1u64,0u64), |(n,r)|
+        if r == 0 {
+            (n+1, n)
+        } else {
+            (n, r-1)
+        }
+    )
+}
+
 pub fn iterize_fib() -> impl Iterator<Item=Int> {
     iterize((1u64,1u64), |(a,b)| (b, a+b))
 }
@@ -93,7 +107,16 @@ pub fn iterize_n_ns() -> impl Iterator<Item=Int> {
 // the next state from an existing state, we return an Iterator for the Rs.
 // So in (R,S), R is the part that gets (R)eturned by the Iterator,
 // and S is any additional (S)tate used internally.
-pub fn iterize<R: Copy, S: Copy>(s0: (R,S), f: impl Fn((R,S)) -> (R,S)) -> impl Iterator<Item = R> {
+pub fn old_iterize<R: Copy, S: Copy>(s0: (R,S), f: impl Fn((R,S)) -> (R,S)) -> impl Iterator<Item = R> {
+    let mut state = s0;
+    repeat_with(
+        move || { state.swap(f(state)).0 }
+    )
+}
+
+pub fn iterize<R: Copy, S: Copy, F>(s0: (R,S), f: F) -> impl Iterator<Item = R>
+where F: Fn((R,S)) -> (R,S)
+{
     let mut state = s0;
     repeat_with(
         move || { state.swap(f(state)).0 }
@@ -167,6 +190,16 @@ mod tests {
     }
 
     #[test]
+    fn old_iterize_fib_t() {
+        assert_eq!(FIB, fib_sum(old_iterize_fib()));
+    }
+
+    #[test]
+    fn old_iterize_n_ns_t() {
+        assert_eq!(N_NS, n_ns_sum(old_iterize_n_ns()));
+    }
+
+    #[test]
     fn iterize_fib_t() {
         assert_eq!(FIB, fib_sum(iterize_fib()));
     }
@@ -209,6 +242,16 @@ mod tests {
     }
 
     #[bench]
+    fn old_iterize_fib_b(b: &mut Bencher) {
+        b.iter(|| { fib_sum(old_iterize_fib()) });
+    }
+
+    #[bench]
+    fn old_iterize_n_ns_b(b: &mut Bencher) {
+        b.iter(|| { n_ns_sum(old_iterize_n_ns()) });
+    }
+
+    #[bench]
     fn iterize_fib_b(b: &mut Bencher) {
         b.iter(|| { fib_sum(iterize_fib()) });
     }
@@ -217,6 +260,7 @@ mod tests {
     fn iterize_n_ns_b(b: &mut Bencher) {
         b.iter(|| { n_ns_sum(iterize_n_ns()) });
     }
+
     #[bench]
     fn iterate_fib_b(b: &mut Bencher) {
         b.iter(|| { fib_sum(iterate_fib()) });
