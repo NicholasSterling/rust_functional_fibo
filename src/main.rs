@@ -150,28 +150,41 @@ pub fn iterate_n_ns() -> impl Iterator<Item=Int> {
     ).map(|p| p.0)
 }
 
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
+
 #[cfg(test)]
 mod tests {
 
     use super::*;
     use test::Bencher;
 
+    const N: u64 = 4000000000000000000;
     const FIB: Int = 12200160415121876737;
     const N_NS: Int = 29820;
 
-    pub fn fib_sum(iter: impl Iterator<Item=Int>) -> Int {
-        iter.take(91).sum()
+////////////////////////////////////////////////////////////////////////////////////
+
+    // pub fn fib_sum(iter: impl Iterator<Item=Int>) -> Int {
+    pub fn fib_sum(n: Int, iter: impl Iterator<Item=Int>) -> Int {
+
+        // iter.take(91).sum()
+
+        iter.take_while(|&x| x < n)
+            .filter(|x| x % 3 == 0)
+            .sum()
     }
 
     pub fn n_ns_sum(iter: impl Iterator<Item=Int>) -> Int {
-        iter.take(1000).sum()
+        iter.skip(5000).take(1000).sum()
     }
 
-    /////
+////////////////////////////////////////////////////////////////////////////////////
 
    #[test]
     fn tuple_fib_t() {
-        assert_eq!(FIB, fib_sum(tuple_fib()));
+        let n = test::black_box(N);
+        assert_eq!(FIB, fib_sum(n, tuple_fib()));
     }
 
    #[test]
@@ -181,7 +194,8 @@ mod tests {
 
    #[test]
     fn byhand_fib_t() {
-        assert_eq!(FIB, fib_sum(byhand_fib()));
+        let n = test::black_box(N);
+        assert_eq!(FIB, fib_sum(n, byhand_fib()));
     }
 
    #[test]
@@ -191,7 +205,8 @@ mod tests {
 
     #[test]
     fn old_iterize_fib_t() {
-        assert_eq!(FIB, fib_sum(old_iterize_fib()));
+        let n = test::black_box(N);
+        assert_eq!(FIB, fib_sum(n, old_iterize_fib()));
     }
 
     #[test]
@@ -201,7 +216,8 @@ mod tests {
 
     #[test]
     fn iterize_fib_t() {
-        assert_eq!(FIB, fib_sum(iterize_fib()));
+        let n = test::black_box(N);
+        assert_eq!(FIB, fib_sum(n, iterize_fib()));
     }
 
     #[test]
@@ -211,7 +227,8 @@ mod tests {
 
     #[test]
     fn iterate_fib_t() {
-        assert_eq!(FIB, fib_sum(iterate_fib()));
+        let n = test::black_box(N);
+        assert_eq!(FIB, fib_sum(n, iterate_fib()));
     }
 
     #[test]
@@ -219,11 +236,14 @@ mod tests {
         assert_eq!(N_NS, n_ns_sum(iterate_n_ns()));
     }
 
-    /////
+    ///////////////////////////////////////////////////
 
     #[bench]
     fn tuple_fib_b(b: &mut Bencher) {
-        b.iter(|| { fib_sum(tuple_fib()) });
+        b.iter(|| {
+            let n = test::black_box(N);
+            fib_sum(n, tuple_fib())
+        });
     }
 
     #[bench]
@@ -233,7 +253,10 @@ mod tests {
 
     #[bench]
     fn byhand_fib_b(b: &mut Bencher) {
-        b.iter(|| { fib_sum(byhand_fib()) });
+        b.iter(|| {
+            let n = test::black_box(N);
+            fib_sum(n, byhand_fib())
+        });
     }
 
     #[bench]
@@ -243,7 +266,10 @@ mod tests {
 
     #[bench]
     fn old_iterize_fib_b(b: &mut Bencher) {
-        b.iter(|| { fib_sum(old_iterize_fib()) });
+        b.iter(|| {
+            let n = test::black_box(N);
+            fib_sum(n, old_iterize_fib())
+        });
     }
 
     #[bench]
@@ -253,7 +279,10 @@ mod tests {
 
     #[bench]
     fn iterize_fib_b(b: &mut Bencher) {
-        b.iter(|| { fib_sum(iterize_fib()) });
+        b.iter(|| {
+            let n = test::black_box(N);
+            fib_sum(n, iterize_fib())
+        });
     }
 
     #[bench]
@@ -263,11 +292,16 @@ mod tests {
 
     #[bench]
     fn iterate_fib_b(b: &mut Bencher) {
-        b.iter(|| { fib_sum(iterate_fib()) });
+        b.iter(|| {
+            let n = test::black_box(N);
+            fib_sum(n, iterate_fib())
+        });
     }
 
     #[bench]
     fn iterate_n_ns_b(b: &mut Bencher) {
-        b.iter(|| { n_ns_sum(iterate_n_ns()) });
+        b.iter(|| {
+            n_ns_sum(iterate_n_ns())
+        });
     }
 }
